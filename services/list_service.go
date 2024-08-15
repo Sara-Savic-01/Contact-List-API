@@ -26,7 +26,7 @@ func (s *listService) GetListByUUID(uuid uuid.UUID) (*models.List, error){
 	return s.repo.GetByUUID(uuid)
 }
 func (s *listService) CreateList(list models.List) error{
-	return s.rep.Create(list)
+	return s.repo.Create(list)
 }
 func (s *listService) UpdateList(list models.List) error{
 	return s.repo.Update(list)
