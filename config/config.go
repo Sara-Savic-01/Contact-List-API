@@ -19,7 +19,7 @@ type Config struct{
 	AuthToken string `json:"auth_token"`
 }
 
-var AppConfig Config
+
 
 func LoadConfig(filename string) (*Config, error){
 	file, err:=os.Open(filename)
@@ -27,9 +27,9 @@ func LoadConfig(filename string) (*Config, error){
 		return nil, err
 	}
 	defer file.Close()
-	
+	var config Config
 	decoder:=json.NewDecoder(file)
-	err=decoder.Decode(&AppConfig)
+	err=decoder.Decode(&config)
 	if err!=nil{
 		return nil,err
 	}
