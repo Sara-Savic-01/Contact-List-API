@@ -6,7 +6,7 @@ import(
 )
 type List struct{
 	ID uint `gorm:"primaryKey;autoIncrement"`
-	UUID uuid.UUID `gorm:"type:char(36); not null;uniqueIndex" json:"uuid:` 
+	UUID uuid.UUID `gorm:"type:char(36); not null;uniqueIndex" json:"uuid":` 
 	Name string `gorm:"type:varchar(255);not null" json:"name"`
 	Contacts []Contact `gorm:"foreignKey:ListID" json:"contacts"`
 }
