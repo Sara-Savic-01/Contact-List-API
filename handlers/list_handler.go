@@ -3,7 +3,7 @@ import(
 	"encoding/json"
 	"net/http"
 	"github.com/google/uuid"
-	
+	"strings"
 	"contact-list-api-1/models"
 	"contact-list-api-1/repositories"
 	"contact-list-api-1/services"
@@ -33,7 +33,12 @@ func (h *ListHandler) GetAllLists(w http.ResponseWriter, r *http.Request){
 }
 
 func (h *ListHandler) GetListByUUID(w http.ResponseWriter, r *http.Request){
-	id:=r.URL.Query().Get("uuid")
+	parts:=strings.Split(r.URL.Path, "/")
+	if len(parts)<4{
+		http.Error(w, "Invalid request path", http.StatusBadRequest)
+		return
+	}	
+	id:=parts[3]
 	uuid, err:=uuid.Parse(id)
 	if err!=nil{
 		http.Error(w, "Invalid UUID format", http.StatusBadRequest)
@@ -48,12 +53,13 @@ func (h *ListHandler) GetListByUUID(w http.ResponseWriter, r *http.Request){
 		}
 		return
 	}
-		w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	data, err:=json.Marshal(list)
 	if err!=nil{
 		http.Error(w, "Failed to load data ", http.StatusInternalServerError)
 		return
 	}
+	
 	w.Write(data)
 }
 
@@ -84,6 +90,7 @@ func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request){
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
+		
 	if err:=h.service.UpdateList(list); err!=nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -93,7 +100,12 @@ func (h *ListHandler) UpdateList(w http.ResponseWriter, r *http.Request){
 }
 
 func (h *ListHandler) DeleteList(w http.ResponseWriter, r *http.Request){
-	id:=r.URL.Query().Get("uuid")
+	parts:=strings.Split(r.URL.Path, "/")
+	if len(parts)<4{
+		http.Error(w, "Invalid request path", http.StatusBadRequest)
+		return
+	}	
+	id:=parts[3]
 	uuid, err:=uuid.Parse(id)
 	if err!=nil{
 		http.Error(w, "Invalid UUID format", http.StatusBadRequest)

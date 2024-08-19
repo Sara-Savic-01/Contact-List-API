@@ -4,6 +4,7 @@ import(
 	"net/http"
 	"github.com/google/uuid"
 	"regexp"
+	"strings"
 	"contact-list-api-1/models"
 	"contact-list-api-1/repositories"
 	"contact-list-api-1/services"
@@ -31,7 +32,12 @@ func (h *ContactHandler) GetAllContacts(w http.ResponseWriter, r *http.Request){
 
 }
 func (h *ContactHandler) GetContactByUUID(w http.ResponseWriter, r *http.Request){
-	id:=r.URL.Query().Get("uuid")
+	parts:=strings.Split(r.URL.Path, "/")
+	if len(parts)<4{
+		http.Error(w, "Invalid request path", http.StatusBadRequest)
+		return
+	}	
+	id:=parts[3]
 	uuid, err:=uuid.Parse(id)
 	if err!=nil{
 		http.Error(w, "Invalid UUID format", http.StatusBadRequest)
@@ -46,7 +52,7 @@ func (h *ContactHandler) GetContactByUUID(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
-		w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	data, err:=json.Marshal(contact)
 	if err!=nil{
 		http.Error(w, "Failed to load data ", http.StatusInternalServerError)
@@ -70,7 +76,9 @@ func (h *ContactHandler) CreateContact(w http.ResponseWriter, r *http.Request){
 		http.Error(w, "invalid mobile format", http.StatusBadRequest)
 		return
 	}
-	
+	if contact.UUID == uuid.Nil {
+        	contact.UUID = uuid.New()
+    	}
 	
 	if err:=h.service.CreateContact(contact);err!=nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -106,7 +114,12 @@ func (h *ContactHandler) UpdateContact(w http.ResponseWriter, r *http.Request){
 }
 
 func (h *ContactHandler) DeleteContact(w http.ResponseWriter, r *http.Request){
-	id:=r.URL.Query().Get("uuid")
+	parts:=strings.Split(r.URL.Path, "/")
+	if len(parts)<4{
+		http.Error(w, "Invalid request path", http.StatusBadRequest)
+		return
+	}	
+	id:=parts[3]
 	uuid, err:=uuid.Parse(id)
 	if err!=nil{
 		http.Error(w, "Invalid UUID format", http.StatusBadRequest)
