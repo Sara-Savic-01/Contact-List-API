@@ -42,6 +42,9 @@ func (s *contactService) CreateContact(contact models.Contact) error{
 	if contact.ListID==0{
 		return errors.New("Contact must belong to a list")
 	}
+	if contact.UUID == uuid.Nil {
+        	contact.UUID = uuid.New()
+    	}
 	return s.repo.Create(contact)
 }
 func (s *contactService) UpdateContact(contact models.Contact) error{
@@ -56,10 +59,7 @@ func (s *contactService) UpdateContact(contact models.Contact) error{
 	if contact.ListID==0{
 		return errors.New("Contact must belong to a list")
 	}
-	existingContact, err:=s.repo.GetByUUID(contact.UUID)
-	if err!=nil || existingContact==nil{
-		return errors.New("Contact not found")
-	}
+	
 	return s.repo.Update(contact)
 }
 func (s *contactService) DeleteContact(uuid uuid.UUID) error{

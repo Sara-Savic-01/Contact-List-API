@@ -30,7 +30,10 @@ func (s *listService) GetListByUUID(uuid uuid.UUID) (*models.List, error){
 func (s *listService) CreateList(list models.List) error{
 	if list.Name==""{
 		return errors.New("Name cannot be empty")
-	}       
+	}
+	if list.UUID == uuid.Nil {
+        	list.UUID = uuid.New()
+    	}       
 	
         existingList, err:=s.repo.GetByUUID(list.UUID)
 	if err==nil && existingList!=nil{
@@ -39,14 +42,7 @@ func (s *listService) CreateList(list models.List) error{
 	return s.repo.Create(list)
 }
 func (s *listService) UpdateList(list models.List) error{
-	if list.Name==""{
-		return errors.New("Name cannot be empty")
-	}      
-	
-        existingList, err:=s.repo.GetByUUID(list.UUID)
-	if err==nil && existingList!=nil{
-		return errors.New("List with this UUID already exists")
-	}	
+	    
 		
 	return s.repo.Update(list)
 }
