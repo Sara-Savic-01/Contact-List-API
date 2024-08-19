@@ -46,9 +46,25 @@ func (l *listRepository) Create(list models.List) error{
 }
 func (l *listRepository) Update(list models.List) error{
 	
-	return l.db.Save(&list).Error
+	if err := l.db.Model(&models.List{}).Where("uuid = ?", list.UUID).Updates(list).Error; err != nil {
+		return err
+	}
+	return nil
 }
 func (l *listRepository) Delete(uuid uuid.UUID) error{
 	
-	return l.db.Where("uuid=?", uuid).Delete(&models.List{}).Error
+	var list models.List
+	result:=l.db.Where("uuid = ?", uuid).First(&list)
+	if result.Error!=nil{
+		return result.Error
+	}
+	l.db.Where("list_id = ?", list.ID).Delete(&models.Contact{})
+	result=l.db.Delete(&list)
+	if result.Error!=nil{
+		return result.Error
+	}
+	if result.RowsAffected==0{
+		return ErrNotFound
+	}	
+	return nil
 }

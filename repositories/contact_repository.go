@@ -49,11 +49,25 @@ func (c *contactRepository) Create(contact models.Contact) error{
 }
 func (c *contactRepository) Update(contact models.Contact) error{
 		
-	return c.db.Save(&contact).Error
+	if err := c.db.Model(&models.Contact{}).Where("uuid = ?", contact.UUID).Updates(contact).Error; err != nil {
+		return err
+	}
+	return nil
 }
 func (c *contactRepository) Delete(uuid uuid.UUID) error{
 	
-			
-	return c.db.Where("uuid=?", uuid).Delete(&models.Contact{}).Error
+	var contact models.Contact
+	result:=c.db.Where("uuid=?", uuid).First(&contact)
+	if result.Error!=nil{
+		return result.Error
+	}
+	result=c.db.Delete(&contact)
+	if result.Error!=nil{
+		return result.Error
+	}
+	if result.RowsAffected==0{
+		return ErrNotFound
+	}	
+	return nil
 }
 
