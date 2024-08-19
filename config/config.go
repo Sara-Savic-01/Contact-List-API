@@ -20,7 +20,6 @@ type Config struct{
 }
 
 
-
 func LoadConfig(filename string) (*Config, error){
 	file, err:=os.Open(filename)
 	if err!=nil{
