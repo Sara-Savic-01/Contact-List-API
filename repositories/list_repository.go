@@ -7,7 +7,7 @@ import(
 )
 
 type ListRepository interface{
-	GetAll() ([]models.List, error)
+	GetAll(name string, limit, offset int) ([]models.List, error)
 	GetByUUID(uuid uuid.UUID) (*models.List, error)
 	Create(list models.List) error
 	Update(list models.List) error
@@ -21,12 +21,14 @@ type listRepository struct{
 func NewListRepository(db *gorm.DB) ListRepository{
 	return &listRepository{db: db}
 }
-
-
-
-func (l *listRepository) GetAll() ([]models.List, error){
+func (l *listRepository) GetAll(name string, limit, offset int) ([]models.List, error){
 	var lists []models.List
-	if err:=l.db.Find(&lists).Error; err!=nil{
+	query:=l.db.Preload("Contacts")
+	if name!=""{
+		query = query.Where("name LIKE ?", "%"+name+"%")
+	}
+	
+	if err:=query.Offset(offset).Limit(limit).Find(&lists).Error; err!=nil{
 		return nil,err
 	}
 	return lists, nil
@@ -34,7 +36,7 @@ func (l *listRepository) GetAll() ([]models.List, error){
 func (l *listRepository) GetByUUID(uuid uuid.UUID) (*models.List, error){
 		
 	var list models.List
-	if err:=l.db.Where("uuid =?", uuid).First(&list).Error; err!=nil{
+	if err:=l.db.Preload("Contacts").Where("uuid =?", uuid).First(&list).Error; err!=nil{
 		return nil, err
 	}
 	return &list, nil
