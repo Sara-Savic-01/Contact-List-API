@@ -7,7 +7,7 @@ import(
 )
 
 type ContactRepository interface{
-	GetAll() ([]models.Contact, error)
+	GetAll(name string, mobile string, email string,limit, offset int) ([]models.Contact, error)
 	GetByUUID(uuid uuid.UUID) (*models.Contact, error)
 	Create(list models.Contact) error
 	Update(list models.Contact) error
@@ -25,10 +25,19 @@ type contactRepository struct{
 func NewContactRepository(db *gorm.DB) ContactRepository{
 	return &contactRepository{db: db}
 }
-
-func (c *contactRepository) GetAll() ([]models.Contact, error){
+func (c *contactRepository) GetAll(name string, mobile string, email string,limit, offset int) ([]models.Contact, error){
 	var contacts []models.Contact
-	if err:=c.db.Find(&contacts).Error; err!=nil{
+	query:=c.db
+	if name != "" {
+        	query = query.Where("first_name LIKE ? OR last_name LIKE ?", "%"+name+"%", "%"+name+"%")
+    	}
+    	if mobile != "" {
+        	query = query.Where("mobile LIKE ?", "%"+mobile+"%")
+    	}
+    	if email != "" {
+        	query = query.Where("email LIKE ?", "%"+email+"%")
+    	}
+	if err:=query.Offset(offset).Limit(limit).Find(&contacts).Error; err!=nil{
 		return nil,err
 	}
 	return contacts, nil
