@@ -6,7 +6,7 @@ import(
 	"errors"
 )
 type ListService interface{
-	GetAllLists() ([]models.List, error)
+	GetAllLists(name string, page, pageSize int) ([]models.List, error)
 	GetListByUUID(uuid uuid.UUID) (*models.List, error)
 	CreateList(list models.List) error
 	UpdateList(list models.List) error
@@ -20,12 +20,21 @@ type listService struct{
 func NewListService(repo repositories.ListRepository) ListService{
 	return &listService{repo:repo}
 }
-func (s *listService) GetAllLists() ([]models.List, error){
-	return s.repo.GetAll()
+func (s *listService) GetAllLists(name string, page, pageSize int) ([]models.List, error){
+	offset:=(page -1)*pageSize	
+	lists, err := s.repo.GetAll(name,pageSize,offset)
+	if err != nil {
+		return nil, err
+	}
+	return lists, nil
 }
 func (s *listService) GetListByUUID(uuid uuid.UUID) (*models.List, error){
 		
-	return s.repo.GetByUUID(uuid)
+	list, err := s.repo.GetByUUID(uuid)
+    	if err != nil {
+        	return nil, err
+    	}
+   	return list, nil
 }
 func (s *listService) CreateList(list models.List) error{
 	if list.Name==""{
