@@ -7,7 +7,7 @@ import(
 	"regexp"
 )
 type ContactService interface{
-	GetAllContacts() ([]models.Contact, error)
+	GetAllContacts(name, mobile, email string, page,pageSize int) ([]models.Contact, error)
 	GetContactByUUID(uuid uuid.UUID) (*models.Contact, error)
 	CreateContact(contact models.Contact) error
 	UpdateContact(contact models.Contact) error
@@ -23,8 +23,9 @@ type contactService struct{
 func NewContactService(repo repositories.ContactRepository) ContactService{
 	return &contactService{repo:repo}
 }
-func (s *contactService) GetAllContacts() ([]models.Contact, error){
-	return s.repo.GetAll()
+func (s *contactService) GetAllContacts(name, mobile, email string, page,pageSize int) ([]models.Contact, error){
+	offset:=(page - 1)*pageSize	
+	return s.repo.GetAll(name,mobile,email,pageSize,offset)
 }
 func (s *contactService) GetContactByUUID(uuid uuid.UUID) (*models.Contact, error){
 		
