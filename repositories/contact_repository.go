@@ -2,7 +2,7 @@ package repositories
 import(
 	"contact-list-api-1/models"
 	"gorm.io/gorm"
-	
+	"errors"
 	"github.com/google/uuid"
 )
 
@@ -26,6 +26,9 @@ func NewContactRepository(db *gorm.DB) ContactRepository{
 	return &contactRepository{db: db}
 }
 func (c *contactRepository) GetAll(name string, mobile string, email string,limit, offset int) ([]models.Contact, error){
+	if limit < 0 || offset < 0 {
+        	return nil, errors.New("limit and offset must be non-negative")
+    	}
 	var contacts []models.Contact
 	query:=c.db
 	if name != "" {
@@ -37,9 +40,18 @@ func (c *contactRepository) GetAll(name string, mobile string, email string,limi
     	if email != "" {
         	query = query.Where("email LIKE ?", "%"+email+"%")
     	}
-	if err:=query.Offset(offset).Limit(limit).Find(&contacts).Error; err!=nil{
-		return nil,err
+	if limit > 0 {
+		query = query.Limit(limit)
 	}
+
+	if offset > 0 {
+		query = query.Offset(offset)
+	}
+
+	if err := query.Find(&contacts).Error; err != nil {
+		return nil, err
+	}
+
 	return contacts, nil
 }
 func (c *contactRepository) GetByUUID(uuid uuid.UUID) (*models.Contact, error){
