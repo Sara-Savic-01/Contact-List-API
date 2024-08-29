@@ -2,6 +2,7 @@ package config
 import(
 	"encoding/json"
 	"os"
+	"log"
 )
 
 type DBConfig struct{
@@ -18,7 +19,9 @@ type Config struct{
 	DB DBConfig `json:"db"`
 	AuthToken string `json:"auth_token"`
 }
-
+type ConfigTest struct{
+	DB DBConfig `json:"db"`
+}
 
 func LoadConfig(filename string) (*Config, error){
 	file, err:=os.Open(filename)
@@ -33,6 +36,21 @@ func LoadConfig(filename string) (*Config, error){
 		return nil,err
 	}
 	return &config, nil
+}
+func LoadTestConfig(filename string) *Config{
+	file, err:=os.Open(filename)
+	if err!=nil{
+		log.Fatalf("Failed to open config file: %v", err)
+	}
+	defer file.Close()
+	
+	decoder:=json.NewDecoder(file)
+	config:=&Config{}
+	err=decoder.Decode(config)
+	if err!=nil{
+		log.Fatalf("Failed to decode config file: %v", err)
+	}
+	return config
 }
 
 	
