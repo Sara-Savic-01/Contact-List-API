@@ -57,7 +57,7 @@ func TestLoadConfig_InvalidFile(t *testing.T) {
         	t.Fatalf("Failed to create invalid config file: %v", err)
     	}
     	defer os.Remove(file.Name())
-    	ile.WriteString(invalidConfig)
+    	file.WriteString(invalidConfig)
     	file.Close()
 
     	_, err = config.LoadConfig(file.Name())
