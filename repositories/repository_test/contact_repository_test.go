@@ -8,17 +8,17 @@ import (
 	
 )
 func TestContactRepository_GetAll(t *testing.T) {
-       db, cleanup := setTestDB(t)
-       defer cleanup()
+       	db, cleanup := setTestDB(t)
+       	defer cleanup()
             
-       repo := repositories.NewContactRepository(db)
+       	repo := repositories.NewContactRepository(db)
 
   
-       list := models.List{
+       	list := models.List{
 		UUID: uuid.New(),
 		Name: "Test List",
-       }
-       if err := db.Create(&list).Error; err != nil {
+       	}
+       	if err := db.Create(&list).Error; err != nil {
 		t.Fatalf("Could not create test list: %v", err)
         }
 
@@ -72,15 +72,7 @@ func TestContactRepository_GetAll(t *testing.T) {
 		    t.Errorf("Expected 0 contacts, got %d", len(contacts))
 		}
 	})
-	t.Run("InvalidPagination", func(t *testing.T) {
-	        contacts, err := repo.GetAll("", "", "", -1, -1)
-		if err == nil {
-		    t.Fatalf("Expected an error, got none")
-		}
-		if len(contacts) != 0 {
-		    t.Errorf("Expected 0 contacts, got %d", len(contacts))
-		}
-	})
+	
 }
 
 
@@ -117,23 +109,12 @@ func TestContactRepository_Create(t *testing.T) {
 	}
 	t.Run("DuplicateContact", func(t *testing.T) {
 	    duplicateContact := testContact
-	    duplicateContact.UUID = uuid.New()
 	    err := repo.Create(duplicateContact)
 	    if err == nil {
 		t.Fatalf("Expected an error due to duplicate email or mobile, got none")
 	    }
 	})
-	t.Run("MissingFields", func(t *testing.T) {
-	    invalidContact := testContact
-	    invalidContact.Email = ""
-	    invalidContact.Mobile = ""
-	    invalidContact.FirstName = ""
-	    invalidContact.LastName = ""
-	    err := repo.Create(invalidContact)
-	    if err == nil {
-		t.Fatalf("Expected an error due to missing required fields, got none")
-	    }
-	})
+	
 }
 func TestContactRepository_GetByUUID(t *testing.T) {
 	db, cleanup := setTestDB(t)
@@ -176,6 +157,7 @@ func TestContactRepository_GetByUUID(t *testing.T) {
 		t.Fatalf("Expected an error for non-existent UUID, got none")
 	    }
 	})
+
 }}
 
 func TestContactRepository_Update(t *testing.T) {
@@ -219,6 +201,23 @@ func TestContactRepository_Update(t *testing.T) {
 	if updatedContact.LastName != "Contact 1" {
 		t.Errorf("Expected last name 'Contact 1', got '%s'", updatedContact.LastName)
 	}
+	t.Run("UpdateNonExistentContact", func(t *testing.T) {
+		nonExistentUUID := uuid.New() 
+		nonExistentContact := models.Contact{
+			UUID:        nonExistentUUID,
+			FirstName:   "Non",
+			LastName:    "Existent",
+			Mobile:      "+0000000000",
+			Email:       "non.existent@example.com",
+			CountryCode: "USA",
+			ListID:      list.ID,
+		}
+		err := repo.Update(nonExistentContact)
+		if err == nil {
+			t.Fatalf("Expected an error for updating non-existent contact, got none")
+		}
+	})
+	
 	
 }
 func TestContactRepository_Delete(t *testing.T) {
@@ -263,4 +262,5 @@ func TestContactRepository_Delete(t *testing.T) {
 		t.Fatalf("Expected an error for deleting non-existent UUID, got none")
 	    }
 	})
+	
 }

@@ -4,6 +4,7 @@ import(
 	"gorm.io/gorm"
 	"errors"
 	"github.com/google/uuid"
+	"fmt"
 )
 
 type ContactRepository interface{
@@ -26,9 +27,6 @@ func NewContactRepository(db *gorm.DB) ContactRepository{
 	return &contactRepository{db: db}
 }
 func (c *contactRepository) GetAll(name string, mobile string, email string,limit, offset int) ([]models.Contact, error){
-	if limit < 0 || offset < 0 {
-        	return nil, errors.New("limit and offset must be non-negative")
-    	}
 	var contacts []models.Contact
 	query:=c.db
 	if name != "" {
@@ -69,6 +67,14 @@ func (c *contactRepository) Create(contact models.Contact) error{
 	return c.db.Create(&contact).Error
 }
 func (c *contactRepository) Update(contact models.Contact) error{
+	var existingContact models.Contact
+	if err := c.db.Where("uuid = ?", contact.UUID).First(&existingContact).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("Contact with UUID %v does not exist", contact.UUID)
+		}
+		return err
+	}
+
 		
 	if err := c.db.Model(&models.Contact{}).Where("uuid = ?", contact.UUID).Updates(contact).Error; err != nil {
 		return err

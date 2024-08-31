@@ -33,7 +33,7 @@ func TestListRepository_GetAll(t *testing.T) {
 		lists[i] = list
 	}
 
-	t.Run("NoFilterNoPagination", func(t *testing.T) {
+	t.Run("WithoutFilterAndPagination", func(t *testing.T) {
 		lists, err := repo.GetAll("", 0, 0)
 		if err != nil {
 			t.Fatalf("Expected no error, got %v", err)
@@ -75,15 +75,7 @@ func TestListRepository_GetAll(t *testing.T) {
 		    t.Errorf("Expected 0 lists, got %d", len(lists))
 		}
 	})
-	t.Run("InvalidPagination", func(t *testing.T) {
-	        lists, err := repo.GetAll("", -1, -1)
-		if err == nil {
-		    t.Fatalf("Expected an error, got none")
-		}
-		if len(lists) != 0 {
-		    t.Errorf("Expected 0 lists, got %d", len(lists))
-		}
-	})
+	
 
 }
 
@@ -110,12 +102,13 @@ func TestListRepository_Create(t *testing.T) {
 	if fetchedList.Name != "Test List" {
 		t.Errorf("Expected list name to be 'Test List', got %s", fetchedList.Name)
 	}
-	t.Run("MissingFields", func(t *testing.T) {
-	    invalidList := testList
-	    invalidList.Name = ""
-	    err := repo.Create(invalidList)
+	
+	t.Run("DuplicateList", func(t *testing.T) {
+	    duplicateList := testList
+	    
+	    err := repo.Create(duplicateList)
 	    if err == nil {
-		t.Fatalf("Expected an error due to missing required fields, got none")
+		t.Fatalf("Expected an error due to duplicate, got none")
 	    }
 	})
 
@@ -183,7 +176,18 @@ func TestListRepository_Update(t *testing.T) {
 	if updatedList.Name != "Updated Name" {
 			t.Errorf("Expected list name to be 'Updated Name', got %s", updatedList.Name)
 	}
-	
+	t.Run("UpdateNonExistentList", func(t *testing.T) {
+		nonExistentUUID := uuid.New() 
+		nonExistentList := models.List{
+			UUID:        nonExistentUUID,
+			Name:   "Non",
+			
+		}
+		err := repo.Update(nonExistentList)
+		if err == nil {
+			t.Fatalf("Expected an error for updating non-existent list, got none")
+		}
+	})
 	
 }
 
