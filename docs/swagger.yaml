@@ -1,0 +1,420 @@
+openapi: 3.0.0
+info:
+  title: Contact List API
+  version: 1.0.0
+  description: API for managing lists and contacts.
+
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      
+
+  schemas:
+    List:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - uuid
+        - name
+    ListCreateOrUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    Contact:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mobile:
+          type: string
+        email:
+          type: string
+          format: email 
+        countryCode:
+          type: string
+        listID:
+          type: integer
+          format: int64
+      required:
+        - uuid
+        - name
+        - firstName
+        - lastName
+        - mobile
+        - email
+        - conutryCode
+        - listID
+    ContactCreateOrUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mobile:
+          type: string
+        email:
+          type: string
+          format: email 
+        countryCode:
+          type: string
+        listID:
+          type: integer
+          format: int64
+      required:
+        - name
+        - firstName
+        - lastName
+        - mobile
+        - email
+        - conutryCode
+        - listID
+
+security:
+  - BearerAuth: []
+
+paths:
+  /lists:
+    get:
+      summary: Retrieve a list of lists
+      tags:
+        - lists
+      description: Fetches a list of lists with optional filtering and pagination.
+      parameters:
+        - name: name
+          in: query
+          description: Filter lists by name
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: pageSize
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10
+      responses:
+        '200':
+          description: A list of lists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/List'
+        '400':
+          description: Bad request 
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /lists/get/{uuid}:
+    get:
+      summary: Retrieve a list by UUID
+      tags:
+        - lists
+      description: Fetches a single list identified by its UUID.
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the list to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A single list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        '400':
+          description: Bad request 
+        '404':
+          description: List not found
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /lists/create:
+    post:
+      summary: Create a new list
+      tags:
+        - lists
+      description: Creates a new list with the provided details.
+      requestBody:
+        description: List object that needs to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListCreateOrUpdate'
+        required: true
+      responses:
+        '201':
+          description: List created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        '400':
+          description: Bad request 
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /lists/update/{uuid}:
+    put:
+      tags:
+        - lists
+      summary: Update an existing list
+      description: Update the details of an existing list identified by UUID.
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the list to be updated
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: List object that needs to be updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListCreateOrUpdate'
+        required: true
+      responses:
+        '204':
+          description: List successfully updated
+        '400':
+          description: Invalid request payload or data validation errors
+        '404':
+          description: List not found
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /lists/delete/{uuid}:
+    delete:
+      tags:
+        - lists
+      summary: Delete a list by UUID
+      description: Delete an existing list identified by UUID.
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the list to be deleted
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: List successfully deleted
+        '400':
+          description: Invalid UUID format or other request error
+        '404':
+          description: List not found
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+        
+  /contacts:
+    get:
+      summary: Retrieve a list of contacts
+      tags:
+        - contacts
+      description: Fetches a list of contacts with optional filtering and pagination.
+      parameters:
+        - name: name
+          in: query
+          description: Filter contacts by first or name
+          required: false
+          schema:
+            type: string
+        - name: email
+          in: query
+          description: Filter contacts by email
+          required: false
+          schema:
+            type: string
+        - name: mobile
+          in: query
+          description: Filter contacts by mobile
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: pageSize
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10
+      responses:
+        '200':
+          description: A list of contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Contact'
+        '400':
+          description: Bad request 
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /contacts/get/{uuid}:
+    get:
+      summary: Retrieve a contact by UUID
+      tags:
+        - contacts
+      description: Fetches a single contact identified by its UUID.
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the contact to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A single contact
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          description: Bad request 
+        '404':
+          description: Contact not found
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /contacts/create:
+    post:
+      summary: Create a new contact
+      tags:
+        - contacts
+      description: Creates a new contact with the provided details.
+      requestBody:
+        description: Contact object that needs to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactCreateOrUpdate'
+        required: true
+      responses:
+        '201':
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          description: Bad request 
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /contacts/update/{uuid}:
+    put:
+      tags:
+        - contacts
+      summary: Update an existing contact
+      description: Update the details of an existing contact identified by UUID.
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the contact to be updated
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Contact object that needs to be updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactCreateOrUpdate'
+        required: true
+      responses:
+        '204':
+          description: Contact successfully updated
+        '400':
+          description: Invalid request payload or data validation errors
+        '404':
+          description: Contact not found
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /contacts/delete/{uuid}:
+    delete:
+      tags:
+        - contacts
+      summary: Delete a contact by UUID
+      description: Delete an existing contact identified by UUID.
+      parameters:
+        - name: uuid
+          in: path
+          description: UUID of the contact to be deleted
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Contact successfully deleted
+        '400':
+          description: Invalid UUID format or other request error
+        '404':
+          description: Contact not found
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
