@@ -45,13 +45,13 @@ func main() {
 	http.Handle("/lists", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(listHandler.GetAllLists)))
 	http.Handle("/lists/get/", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(listHandler.GetListByUUID)))
 	http.Handle("/lists/create", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(listHandler.CreateList)))
-	http.Handle("/lists/update", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(listHandler.UpdateList)))
+	http.Handle("/lists/update/", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(listHandler.UpdateList)))
 	http.Handle("/lists/delete/", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(listHandler.DeleteList)))	
 	
 	http.Handle("/contacts", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(contactHandler.GetAllContacts)))	
 	http.Handle("/contacts/get/", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(contactHandler.GetContactByUUID)))	
 	http.Handle("/contacts/create", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(contactHandler.CreateContact)))
-	http.Handle("/contacts/update", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(contactHandler.UpdateContact)))
+	http.Handle("/contacts/update/", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(contactHandler.UpdateContact)))
 	http.Handle("/contacts/delete/", middleware.AuthMiddleware(cfg.AuthToken, http.HandlerFunc(contactHandler.DeleteContact)))	
 	
 	log.Println("Starting server on port 8080...")
