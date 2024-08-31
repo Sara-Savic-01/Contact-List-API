@@ -27,13 +27,18 @@ components:
       required:
         - uuid
         - name
-    ListCreateOrUpdate:
+    ListCreate:
       type: object
       properties:
         name:
           type: string
       required:
         - name
+    ListUpdate:
+      type: object
+      properties:
+        name:
+          type: string
     Contact:
       type: object
       properties:
@@ -63,7 +68,7 @@ components:
         - email
         - conutryCode
         - listID
-    ContactCreateOrUpdate:
+    ContactCreate:
       type: object
       properties:
         firstName:
@@ -88,6 +93,23 @@ components:
         - email
         - conutryCode
         - listID
+    ContactUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mobile:
+          type: string
+        email:
+          type: string
+          format: email 
+        countryCode:
+          type: string
+        listID:
+          type: integer
+          format: int64
 
 security:
   - BearerAuth: []
@@ -177,7 +199,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListCreateOrUpdate'
+              $ref: '#/components/schemas/ListCreate'
         required: true
       responses:
         '201':
@@ -211,7 +233,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListCreateOrUpdate'
+              $ref: '#/components/schemas/ListUpdate'
         required: true
       responses:
         '204':
@@ -346,7 +368,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContactCreateOrUpdate'
+              $ref: '#/components/schemas/ContactCreate'
         required: true
       responses:
         '201':
@@ -380,7 +402,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ContactCreateOrUpdate'
+              $ref: '#/components/schemas/ContactUpdate'
         required: true
       responses:
         '204':
