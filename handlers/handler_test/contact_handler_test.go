@@ -308,6 +308,29 @@ func TestCreateContact(t *testing.T) {
 		if createdContact.FirstName != "Test" || createdContact.Email != "test.test@example.com" {
 			t.Errorf("Expected contact 'Test Test', got %+v", createdContact)
 		}
+		t.Run("InvalidListID", func(t *testing.T) {
+			invalidListID := uint(111111) 
+			invalidContact := fmt.Sprintf(`{
+			    "first_name": "Test",
+			    "last_name": "Test",
+			    "mobile": "+987654321",
+			    "email": "test.test@example.com",
+			    "country_code": "USA",
+			    "list_id": %d
+			}`, invalidListID)
+
+			req, err := http.NewRequest("POST", "/contacts/create", strings.NewReader(invalidContact))
+			if err != nil {
+			    t.Fatalf("Could not create HTTP request: %v", err)
+			}
+
+			rr := httptest.NewRecorder()
+			handler.CreateContact(rr, req)
+
+			if status := rr.Code; status != http.StatusBadRequest{
+			    t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
+			}
+    		})
 		t.Run("InvalidJSONFormat", func(t *testing.T) {
 			req, err := http.NewRequest("POST", "/contacts/create", strings.NewReader(`{invalid json}`))
 			if err != nil {
@@ -361,6 +384,7 @@ func TestCreateContact(t *testing.T) {
 				t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
 			}
 		})
+		
 }
 func TestUpdateContact(t *testing.T) {
 	    db, cleanup := setTestDB(t)
@@ -398,7 +422,7 @@ func TestUpdateContact(t *testing.T) {
 	    "list_id": %d
 	    }`, list.ID)
 
-	    req, err := http.NewRequest("PUT", "/contacts/update", strings.NewReader(updatedContact))
+	    req, err := http.NewRequest("PUT", "/contacts/update/"+testContact.UUID.String(), strings.NewReader(updatedContact))
 	    if err != nil {
 		t.Fatalf("Could not create HTTP request: %v", err)
 	    }
@@ -418,8 +442,31 @@ func TestUpdateContact(t *testing.T) {
 	    if updated.FirstName != "test" || updated.Mobile != "+123456789" {
 		t.Errorf("Expected contact 'test test', got %+v", updated)
 	    }
+	    t.Run("InvalidListID", func(t *testing.T) {
+		invalidListID := uint(999999) 
+		updatedContact := fmt.Sprintf(`{
+		    "first_name": "test",
+		    "last_name": "test",
+		    "mobile": "+123456789",
+		    "email": "test@example.com",
+		    "country_code": "USA",
+		    "list_id": %d
+		}`, invalidListID)
+
+		req, err := http.NewRequest("PUT", "/contacts/update/"+testContact.UUID.String(), strings.NewReader(updatedContact))
+		if err != nil {
+		    t.Fatalf("Could not create HTTP request: %v", err)
+		}
+
+		rr := httptest.NewRecorder()
+		handler.UpdateContact(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+		    t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
+		}
+    	    })
 	    t.Run("InvalidJSONFormat", func(t *testing.T) {
-			req, err := http.NewRequest("PUT", "/contacts/update", strings.NewReader(`{invalid json}`))
+			req, err := http.NewRequest("PUT", "/contacts/update/"+testContact.UUID.String(), strings.NewReader(`{invalid json}`))
 			if err != nil {
 				t.Fatalf("Could not create HTTP request: %v", err)
 			}
@@ -431,45 +478,44 @@ func TestUpdateContact(t *testing.T) {
 				t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
 			}
 	    })
-	    t.Run("MissingRequiredFields", func(t *testing.T) {
-			incompleteContact := fmt.Sprintf(`{
-				"first_name": "Test"
-			}`)
-
-			req, err := http.NewRequest("PUT", "/contacts/update", strings.NewReader(incompleteContact))
+	    
+	     t.Run("NonExistentUUID", func(t *testing.T) {
+			req, err := http.NewRequest("PUT", "/contacts/update/"+uuid.New().String(), strings.NewReader(updatedContact))
 			if err != nil {
-				t.Fatalf("Could not create HTTP request: %v", err)
+			    t.Fatalf("Could not create HTTP request: %v", err)
 			}
-
 			rr := httptest.NewRecorder()
 			handler.UpdateContact(rr, req)
 
-			if status := rr.Code; status != http.StatusBadRequest {
-				t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
+			if status := rr.Code; status != http.StatusNotFound {
+			    t.Errorf("Expected status code %d, got %d", http.StatusNotFound, status)
 			}
 	    })
-	    t.Run("EmptyAndInvalidRequiredFields", func(t *testing.T) {
-			incompleteContact := fmt.Sprintf(`{
-				"first_name": "",
-				"last_name": "",
-				"mobile": "",
-				"email": "",
-				"country_code": "US",
-				
-				}`)
 
-			req, err := http.NewRequest("PUT", "/contacts/update", strings.NewReader(incompleteContact))
+	    t.Run("MissingUUID", func(t *testing.T) {
+			req, err := http.NewRequest("PUT", "/contacts/update/", strings.NewReader(updatedContact))
 			if err != nil {
-				t.Fatalf("Could not create HTTP request: %v", err)
+			    t.Fatalf("Could not create HTTP request: %v", err)
 			}
-
 			rr := httptest.NewRecorder()
 			handler.UpdateContact(rr, req)
 
 			if status := rr.Code; status != http.StatusBadRequest {
-				t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
+			    t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
 			}
-	     })
+	    })
+	    t.Run("InvalidUUID", func(t *testing.T) {
+			req, err := http.NewRequest("PUT", "/contacts/update/invalid-uuid", strings.NewReader(updatedContact))
+			if err != nil {
+			    t.Fatalf("Could not create HTTP request: %v", err)
+			}
+			rr := httptest.NewRecorder()
+			handler.UpdateContact(rr, req)
+
+			if status := rr.Code; status != http.StatusBadRequest {
+			    t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
+			}
+    	    })
 			    
 
       

@@ -211,6 +211,7 @@ func TestGetListByUUID(t *testing.T){
 		}
     	})
 	
+	
 }
 func TestCreateList(t *testing.T) {
 	db, cleanup := setTestDB(t)
@@ -313,7 +314,7 @@ func TestUpdateList(t *testing.T) {
 
 	updatedList := `{"name": "Updated Test List"}`
 
-	req, err := http.NewRequest("PUT", "/lists/update", strings.NewReader(updatedList))
+	req, err := http.NewRequest("PUT", "/lists/update/"+testList.UUID.String(), strings.NewReader(updatedList))
 	if err != nil {
 		t.Fatalf("Could not create HTTP request: %v", err)
 	}
@@ -325,10 +326,11 @@ func TestUpdateList(t *testing.T) {
 	if status := rr.Code; status != http.StatusNoContent {
 		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, status)
 	}
-	t.Run("MissingNameField", func(t *testing.T) {
-		invalidJSON := `{}`
+	
+	t.Run("InvalidJSONFormat", func(t *testing.T) {
+		invalidJSON := `{"name": "Invalid List"`
 
-		req, err := http.NewRequest("PUT", "/lists/update", strings.NewReader(invalidJSON))
+		req, err := http.NewRequest("PUT", "/lists/update/"+testList.UUID.String(), strings.NewReader(invalidJSON))
 		if err != nil {
 			t.Fatalf("Could not create HTTP request: %v", err)
 		}
@@ -340,17 +342,37 @@ func TestUpdateList(t *testing.T) {
 			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
 		}
 	})
-	t.Run("InvalidJSONFormat", func(t *testing.T) {
-		invalidJSON := `{"name": "Invalid List"`
-
-		req, err := http.NewRequest("PUT", "/lists/update", strings.NewReader(invalidJSON))
+	t.Run("InvalidUUID", func(t *testing.T) {
+		req, err := http.NewRequest("PUT", "/lists/update/invalid-uuid", strings.NewReader(updatedList))
 		if err != nil {
 			t.Fatalf("Could not create HTTP request: %v", err)
 		}
-
 		rr := httptest.NewRecorder()
 		handler.UpdateList(rr, req)
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
+		}
+	})
 
+	t.Run("NonExistentUUID", func(t *testing.T) {
+		req, err := http.NewRequest("PUT", "/lists/update/"+uuid.New().String(), strings.NewReader(updatedList))
+		if err != nil {
+			t.Fatalf("Could not create HTTP request: %v", err)
+		}
+		rr := httptest.NewRecorder()
+		handler.UpdateList(rr, req)
+		if status := rr.Code; status != http.StatusNotFound {
+			t.Errorf("Expected status code %d, got %d", http.StatusNotFound, status)
+		}
+	})
+
+	t.Run("MissingUUID", func(t *testing.T) {
+		req, err := http.NewRequest("PUT", "/lists/update/", strings.NewReader(updatedList))
+		if err != nil {
+			t.Fatalf("Could not create HTTP request: %v", err)
+		}
+		rr := httptest.NewRecorder()
+		handler.UpdateList(rr, req)
 		if status := rr.Code; status != http.StatusBadRequest {
 			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, status)
 		}
