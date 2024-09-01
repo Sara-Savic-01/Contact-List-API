@@ -281,7 +281,7 @@ paths:
       parameters:
         - name: name
           in: query
-          description: Filter contacts by first or name
+          description: Filter contacts by first or last name
           required: false
           schema:
             type: string
