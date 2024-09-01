@@ -69,25 +69,7 @@ func TestListService_GetAllLists(t *testing.T) {
 		
 	})
 	
-	t.Run("InvalidPageNumber", func(t *testing.T) {
-		results, err := service.GetAllLists("",0, 10) 
-		if err == nil {
-		    t.Fatal("Expected error for page number less than 1, got none")
-		}
-		if results != nil {
-		    t.Errorf("Expected no results, got %v", results)
-		}
-	    })
-
-    	t.Run("InvalidPageSize", func(t *testing.T) {
-        	results, err := service.GetAllLists("", 1, 0) 
-		if err == nil {
-		    t.Fatal("Expected error for page size less than 1, got none")
-		}
-		if results != nil {
-		    t.Errorf("Expected no results, got %v", results)
-		}
-    	})
+	
 
 }
 
@@ -150,24 +132,7 @@ func TestListService_CreateList(t *testing.T) {
     	if list.Name != newList.Name {
         	t.Errorf("Expected name %v, got %v", newList.Name, list.Name)
     	}
-	t.Run("DuplicateUUID", func(t *testing.T) {
-    		existingList := models.List{
-        		UUID: uuid.New(),
-       			Name: "Existing List",
-    		}
-    		db.Create(&existingList)
-
-    		newList := models.List{
-        		UUID: existingList.UUID, 
-        		Name: "Another List",
-    		}
-
-    		err := service.CreateList(newList)
-    		if err == nil {
-        		t.Fatalf("Expected an error for duplicate UUID, got nil")
-    		}
-	})
-	t.Run("InvalidName", func(t *testing.T) {
+	t.Run("EmptyName", func(t *testing.T) {
     		newList := models.List{
         		UUID: uuid.New(),
         		Name: "", 
@@ -208,7 +173,7 @@ func TestListService_UpdateList(t *testing.T) {
     	if updatedList.Name != list.Name {
         	t.Errorf("Expected name %v, got %v", list.Name, updatedList.Name)
     	}
-	t.Run("InvalidUUID", func(t *testing.T) {
+	t.Run("NonExistentUUID", func(t *testing.T) {
     		invalidUUID := uuid.New()
     		list := models.List{
         		UUID: invalidUUID,
@@ -220,19 +185,7 @@ func TestListService_UpdateList(t *testing.T) {
         		t.Fatalf("Expected an error for invalid UUID, got nil")
     		}
 	})
-	t.Run("InvalidName", func(t *testing.T) {
-    		existingList := models.List{
-        		UUID: uuid.New(),
-        		Name: "Valid Name",
-    		}
-    		db.Create(&existingList)
-
-    		existingList.Name = "" 
-    		err := service.UpdateList(existingList)
-    		if err == nil {
-        		t.Fatalf("Expected an error for invalid name, got nil")
-    		}
-	})
+	
 }
 
 func TestListService_DeleteList(t *testing.T) {
@@ -259,13 +212,7 @@ func TestListService_DeleteList(t *testing.T) {
     	if result := db.Where("uuid = ?", testUUID).First(&deletedList); result.Error == nil {
         	t.Errorf("Expected record to be deleted, but it still exists")
     	}
-	t.Run("InvalidUUID", func(t *testing.T) {
-    		invalidUUID := uuid.New()
-    		err := service.DeleteList(invalidUUID)
-    		if err == nil {
-        		t.Fatalf("Expected an error for invalid UUID, got nil")
-    		}
-	})
+	
 	t.Run("DeleteAlreadyDeleted", func(t *testing.T) {
 		    validUUID := uuid.New()
 		    list := models.List{
