@@ -10,6 +10,7 @@ import(
 type ContactRepository interface{
 	GetAll(name string, mobile string, email string,limit, offset int) ([]models.Contact, error)
 	GetByUUID(uuid uuid.UUID) (*models.Contact, error)
+	ListExists(listID uint) (bool, error)
 	Create(list models.Contact) error
 	Update(list models.Contact) error
 	Delete(uuid uuid.UUID) error
@@ -61,7 +62,13 @@ func (c *contactRepository) GetByUUID(uuid uuid.UUID) (*models.Contact, error){
 	}
 	return &contact, nil
 }
-
+func (c *contactRepository) ListExists(listID uint) (bool, error) {
+	var count int64
+	if err := c.db.Model(&models.List{}).Where("id = ?", listID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
 func (c *contactRepository) Create(contact models.Contact) error{
 		
 	return c.db.Create(&contact).Error
