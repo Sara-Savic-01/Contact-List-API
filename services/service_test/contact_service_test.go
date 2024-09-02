@@ -88,7 +88,7 @@ func TestContactService_GetAllContacts(t *testing.T) {
 		    t.Fatalf("Expected no error, got %v", err)
 		}
 		if len(results) != 1 {
-		    t.Errorf("Expected 1 contact on page 2 with page size 1, got %d", len(results))
+		    t.Errorf("Expected 1 contact on page 1 with page size 1, got %d", len(results))
 		}
         
     	})
