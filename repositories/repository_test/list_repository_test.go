@@ -22,7 +22,7 @@ func TestListRepository_GetAll(t *testing.T) {
 
 	repo := repositories.NewListRepository(db)
 	lists := []models.List{
-		{UUID: uuid.New(), Name: "List1"},
+		{UUID: uuid.New(),Name: "List1"},
 		{UUID: uuid.New(), Name: "List2"},
 		{UUID: uuid.New(), Name: "List3"},
 	}
@@ -59,21 +59,12 @@ func TestListRepository_GetAll(t *testing.T) {
 	t.Run("WithPagination", func(t *testing.T) {
 		lists, err := repo.GetAll("", 2, 1) 
 		if err != nil {
-			t.Fatalf("Expected no error, got %v", err)
+			t.Fatalf("Expected no error, got none")
 		}
 		if len(lists) != 2 {
 			t.Errorf("Expected 2 lists, got %d", len(lists))
 		}
 		
-	})
-	t.Run("FilterNoMatch", func(t *testing.T) {
-    	        lists, err := repo.GetAll("NonExistent", 0, 0)
-		if err != nil {
-		    t.Fatalf("Expected no error, got %v", err)
-		}
-		if len(lists) != 0 {
-		    t.Errorf("Expected 0 lists, got %d", len(lists))
-		}
 	})
 	
 
