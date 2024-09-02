@@ -23,7 +23,10 @@ func TestLoadConfig_ValidFile(t *testing.T) {
         	t.Fatalf("Failed to create test config file: %v", err)
     	}
     	defer os.Remove(file.Name())
-    	file.WriteString(testConfig)
+    	_,err=file.WriteString(testConfig)
+	if err != nil {
+		t.Fatalf("Failed to write JSON to test config file: %v", err)
+	}
     	file.Close()
 
     
@@ -57,7 +60,10 @@ func TestLoadConfig_InvalidFile(t *testing.T) {
         	t.Fatalf("Failed to create invalid config file: %v", err)
     	}
     	defer os.Remove(file.Name())
-    	file.WriteString(invalidConfig)
+    	_, err=file.WriteString(invalidConfig)
+	if err != nil {
+		t.Fatalf("Failed to write invalid JSON to invalid config file: %v", err)
+	}
     	file.Close()
 
     	_, err = config.LoadConfig(file.Name())
@@ -89,7 +95,10 @@ func TestLoadTestConfig_ValidFile(t *testing.T) {
 		t.Fatalf("Failed to create test config file: %v", err)
 	}
 	defer os.Remove(file.Name())
-	file.WriteString(testConfig)
+	_, err=file.WriteString(testConfig)
+	if err != nil {
+		t.Fatalf("Failed to write JSON to test config file: %v", err)
+	}
 	file.Close()
 
 	    
