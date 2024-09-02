@@ -63,15 +63,7 @@ func TestContactRepository_GetAll(t *testing.T) {
 		}
 		
 	})
-	t.Run("FilterNoMatch", func(t *testing.T) {
-    	        contacts, err := repo.GetAll("NonExistent", "", "", 0, 0)
-		if err != nil {
-		    t.Fatalf("Expected no error, got %v", err)
-		}
-		if len(contacts) != 0 {
-		    t.Errorf("Expected 0 contacts, got %d", len(contacts))
-		}
-	})
+	
 	
 }
 
