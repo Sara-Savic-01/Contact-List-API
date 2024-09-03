@@ -11,8 +11,8 @@ type ContactRepository interface{
 	GetAll(name string, mobile string, email string,limit, offset int) ([]models.Contact, error)
 	GetByUUID(uuid uuid.UUID) (*models.Contact, error)
 	ListExists(listID uint) (bool, error)
-	Create(list models.Contact) error
-	Update(list models.Contact) error
+	Create(contact models.Contact) error
+	Update(contact models.Contact) error
 	Delete(uuid uuid.UUID) error
 	
 	
