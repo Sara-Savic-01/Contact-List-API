@@ -161,7 +161,7 @@ func (h *ContactHandler) DeleteContact(w http.ResponseWriter, r *http.Request){
 	}
 	if err:=h.service.DeleteContact(uuid); err!=nil{
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-            		http.Error(w, "List not found", http.StatusNotFound)
+            		http.Error(w, "Contact not found", http.StatusNotFound)
         	} else {
             		http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
         	}
