@@ -37,7 +37,7 @@ func LoadConfig(filename string) (*Config, error){
 	}
 	return &config, nil
 }
-func LoadTestConfig(filename string) *Config{
+func LoadTestConfig(filename string) *ConfigTest{
 	file, err:=os.Open(filename)
 	if err!=nil{
 		log.Fatalf("Failed to open config file: %v", err)
@@ -45,7 +45,7 @@ func LoadTestConfig(filename string) *Config{
 	defer file.Close()
 	
 	decoder:=json.NewDecoder(file)
-	config:=&Config{}
+	config:=&ConfigTest{}
 	err=decoder.Decode(config)
 	if err!=nil{
 		log.Fatalf("Failed to decode config file: %v", err)
