@@ -402,7 +402,7 @@ func TestContactService_UpdateContact(t *testing.T) {
 		}
 		err := service.UpdateContact(invalidMobileContact)
 		if err == nil {
-		    t.Fatal("Expected error for invalid email format, got none")
+		    t.Fatal("Expected error for invalid mobile format, got none")
 		}
     	})
     	t.Run("NonExistentUUID", func(t *testing.T) {
@@ -431,14 +431,15 @@ func TestContactService_UpdateContact(t *testing.T) {
 		    UUID:        contact.UUID,
 		    FirstName:   "",
 		    LastName:    "",
-		    Mobile:      "",
-		    Email:       "",
+		    Mobile:      "+1122334455",
+		    Email:       "test1.test1@example.com",
 		    CountryCode: "US",
+		    ListID:      list.ID,
 		        
 		}
 		err := service.UpdateContact(invalidContact)
 		if err == nil {
-		    t.Fatal("Expected error for invalid email format, got none")
+		    t.Fatal("Expected error for invalid country code, got none")
 		}
       	})
 
