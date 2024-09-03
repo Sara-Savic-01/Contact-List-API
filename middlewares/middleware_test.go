@@ -13,7 +13,7 @@ func TestAuthMiddleware(t *testing.T){
 		})
 		token:="Axf2FVAusahoXmKMLZih7LrhBwmYLVmyLDiMoYizPGReJTKEaseAb12oGYvbLleS"
 		middleware:=AuthMiddleware(token, handler)
-		req, err:=http.NewRequest("GET","lists", nil)
+		req, err:=http.NewRequest("GET","/lists", nil)
 		if err!=nil{
 			t.Fatalf("Could not create request:%v",err)
 		}
@@ -34,7 +34,7 @@ func TestAuthMiddleware(t *testing.T){
 		})
 		token:="Axf2FVAusahoXmKMLZih7LrhBwmYLVmyLDiMoYizPGReJTKEaseAb12oGYvbLleS"
 		middleware:=AuthMiddleware(token, handler)
-		req, err:=http.NewRequest("GET","lists", nil)
+		req, err:=http.NewRequest("GET","/lists", nil)
 		if err!=nil{
 			t.Fatalf("Could not create request:%v",err)
 		}
