@@ -82,13 +82,13 @@ func (s *contactService) CreateContact(contact models.Contact) error{
 	return s.repo.Create(contact)
 }
 func (s *contactService) UpdateContact(contact models.Contact) error{
-	exists, err := s.repo.ListExists(contact.ListID)
+	/*exists, err := s.repo.ListExists(contact.ListID)
 	if err != nil {
 		return err
 	}
 	if !exists {
 		return errors.New("The associated list does not exist")
-	}
+	}*/
 	existingContact, err:=s.repo.GetByUUID(contact.UUID)
 	if err!=nil{
 		return err
@@ -96,18 +96,23 @@ func (s *contactService) UpdateContact(contact models.Contact) error{
 	if existingContact==nil{
 		return errors.New("Contact not found")
 	}
-	if !isValidEmail(contact.Email){
-		return errors.New("Invalid email format")
-	}	
-	if !isValidMobile(contact.Mobile){
-		return errors.New("Invalid mobile format")
+	if contact.Email != "" && contact.Email != existingContact.Email {
+		if !isValidEmail(contact.Email){
+			return errors.New("Invalid email format")
+		}	
+		existingContact.Email = contact.Email
 	}
-	
-	if len(contact.CountryCode)!=3{
-		return errors.New("Country code must be exactly 3 characters long")
+	if contact.Mobile != "" && contact.Mobile != existingContact.Mobile {
+		if !isValidMobile(contact.Mobile){
+			return errors.New("Invalid mobile format")
+		}
+		existingContact.Mobile = contact.Mobile
 	}
-	if contact.ListID==0{
-		return errors.New("Contact must belong to a list")
+	if contact.CountryCode != "" && contact.CountryCode != existingContact.CountryCode {
+		if len(contact.CountryCode)!=3{
+			return errors.New("Country code must be exactly 3 characters long")
+		}
+		existingContact.CountryCode = contact.CountryCode
 	}
 	return s.repo.Update(contact)
 }
