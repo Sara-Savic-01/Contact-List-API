@@ -135,9 +135,7 @@ func (h *ContactHandler) UpdateContact(w http.ResponseWriter, r *http.Request){
 	if err=h.service.UpdateContact(contact);err!=nil{
 		if errors.Is(err, gorm.ErrRecordNotFound) {
             		http.Error(w, "Contact not found", http.StatusNotFound)
-        	}else if err.Error() == "The associated list does not exist" {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		}else {
+        	}else {
             		http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
         	}
         	return

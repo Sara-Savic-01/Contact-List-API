@@ -45,7 +45,7 @@ func TestGetAllContacts(t *testing.T) {
 		    UUID:        uuid.New(),
 		    FirstName:   "Test 1",
 		    LastName:    "Test 1",
-		    Mobile:      "+0987654321",
+		    Mobile:      "+1987654321",
 		    Email:       "test1.test1@example.com",
 		    CountryCode: "USA",
 		    ListID:      list.ID,

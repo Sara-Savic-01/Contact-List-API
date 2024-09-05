@@ -37,7 +37,7 @@ func TestContactService_GetAllContacts(t *testing.T) {
 		    UUID:        uuid.New(),
 		    FirstName:   "Test 1",
 		    LastName:    "Test",
-		    Mobile:      "+0987654321",
+		    Mobile:      "+1987654321",
 		    Email:       "contact.contact@example.com",
 		    CountryCode: "USA",
 		    ListID:      list.ID,
@@ -58,7 +58,7 @@ func TestContactService_GetAllContacts(t *testing.T) {
         	}
     	}
 
-    	t.Run("WithoutFilterAndPagination", func(t *testing.T) {
+    	t.Run("WithoutFilterAndWithDefaultPagination", func(t *testing.T) {
 		results, err := service.GetAllContacts("", "", "", 1, 10) 
 		if err != nil {
 		    t.Fatalf("Expected no error, got %v", err)

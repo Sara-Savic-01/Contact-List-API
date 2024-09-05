@@ -25,7 +25,7 @@ func TestContactRepository_GetAll(t *testing.T) {
 	   
 	testContacts := []models.Contact{
 		{UUID: uuid.New(), FirstName: "Test", LastName: "Contact", Mobile: "+1234567890", Email: "test.contact@example.com", CountryCode: "USA", ListID: list.ID},
-		{UUID: uuid.New(), FirstName: "Test 1", LastName: "Contact 1", Mobile: "+0987654321", Email: "test.test@example.com", CountryCode: "USA", ListID: list.ID},
+		{UUID: uuid.New(), FirstName: "Test 1", LastName: "Contact 1", Mobile: "+1987654321", Email: "test.test@example.com", CountryCode: "USA", ListID: list.ID},
 	}
 	for _, contact := range testContacts {
 		if err := db.Create(&contact).Error; err != nil {
@@ -125,7 +125,7 @@ func TestContactRepository_GetByUUID(t *testing.T) {
 		UUID:        testUUID,
 		FirstName:   "Test",
 		LastName:    "Contact",
-		Mobile:      "+0987654321",
+		Mobile:      "+1987654321",
 		Email:       "test.contact@example.com",
 		CountryCode: "USA",
 		ListID:      list.ID,

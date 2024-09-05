@@ -35,7 +35,7 @@ func TestListService_GetAllLists(t *testing.T) {
 		lists[i] = list
 	}
 
-	t.Run("WithoutFilterAndPagination", func(t *testing.T) {
+	t.Run("WithoutFilterAndWithDefaultPagination", func(t *testing.T) {
 		results, err := service.GetAllLists("", 1, 10) 
 		if err != nil {
 		    t.Fatalf("Expected no error, got %v", err)
