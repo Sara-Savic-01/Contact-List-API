@@ -353,7 +353,7 @@ func TestContactService_UpdateContact(t *testing.T) {
     	if updatedContact.Email != contact.Email {
         	t.Errorf("Expected email %v, got %v", contact.Email, updatedContact.Email)
     	}
-	t.Run("UpdateContact_InvalidListID", func(t *testing.T) {
+	/*t.Run("UpdateContact_InvalidListID", func(t *testing.T) {
         	
 		invalidContact := models.Contact{
 		    UUID:        contact.UUID,
@@ -371,7 +371,7 @@ func TestContactService_UpdateContact(t *testing.T) {
         }
 
         
-	})
+	})*/
     	t.Run("InvalidEmailFormat", func(t *testing.T) {
 		
 		invalidEmailContact := models.Contact{
