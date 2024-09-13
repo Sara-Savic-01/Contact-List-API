@@ -159,7 +159,32 @@ paths:
           description: Internal server error
       security:
         - BearerAuth: []
-  /lists/get/{uuid}:
+    post:
+      summary: Create a new list
+      tags:
+        - lists
+      description: Creates a new list with the provided details.
+      requestBody:
+        description: List object that needs to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListCreate'
+        required: true
+      responses:
+        '201':
+          description: List created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        '400':
+          description: Bad request 
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /lists/{uuid}:
     get:
       summary: Retrieve a list by UUID
       tags:
@@ -187,34 +212,7 @@ paths:
         '500':
           description: Internal server error
       security:
-        - BearerAuth: []
-  /lists/create:
-    post:
-      summary: Create a new list
-      tags:
-        - lists
-      description: Creates a new list with the provided details.
-      requestBody:
-        description: List object that needs to be added
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ListCreate'
-        required: true
-      responses:
-        '201':
-          description: List created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/List'
-        '400':
-          description: Bad request 
-        '500':
-          description: Internal server error
-      security:
-        - BearerAuth: []
-  /lists/update/{uuid}:
+        - BearerAuth: []  
     put:
       tags:
         - lists
@@ -246,7 +244,6 @@ paths:
           description: Internal server error
       security:
         - BearerAuth: []
-  /lists/delete/{uuid}:
     delete:
       tags:
         - lists
@@ -328,7 +325,32 @@ paths:
           description: Internal server error
       security:
         - BearerAuth: []
-  /contacts/get/{uuid}:
+    post:
+      summary: Create a new contact
+      tags:
+        - contacts
+      description: Creates a new contact with the provided details.
+      requestBody:
+        description: Contact object that needs to be added
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactCreate'
+        required: true
+      responses:
+        '201':
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          description: Bad request 
+        '500':
+          description: Internal server error
+      security:
+        - BearerAuth: []
+  /contacts/{uuid}:
     get:
       summary: Retrieve a contact by UUID
       tags:
@@ -357,33 +379,6 @@ paths:
           description: Internal server error
       security:
         - BearerAuth: []
-  /contacts/create:
-    post:
-      summary: Create a new contact
-      tags:
-        - contacts
-      description: Creates a new contact with the provided details.
-      requestBody:
-        description: Contact object that needs to be added
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ContactCreate'
-        required: true
-      responses:
-        '201':
-          description: Contact created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Contact'
-        '400':
-          description: Bad request 
-        '500':
-          description: Internal server error
-      security:
-        - BearerAuth: []
-  /contacts/update/{uuid}:
     put:
       tags:
         - contacts
@@ -415,7 +410,7 @@ paths:
           description: Internal server error
       security:
         - BearerAuth: []
-  /contacts/delete/{uuid}:
+
     delete:
       tags:
         - contacts
