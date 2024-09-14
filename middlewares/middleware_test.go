@@ -1,73 +1,61 @@
 package middleware
-import(
+
+import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	
 )
-func TestAuthMiddleware(t *testing.T){
-	t.Run("Valid token", func(t *testing.T){
-		handler:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+
+func TestAuthMiddleware(t *testing.T) {
+	testCases := []struct {
+		name         string
+		authHeader   string
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "Valid token",
+			authHeader:   "Bearer Axf2FVAusahoXmKMLZih7LrhBwmYLVmyLDiMoYizPGReJTKEaseAb12oGYvbLleS",
+			expectedCode: http.StatusOK,
+			expectedBody: "OK",
+		},
+		{
+			name:         "Invalid token",
+			authHeader:   "Bearer invalid token",
+			expectedCode: http.StatusForbidden,
+			expectedBody: "Forbidden\n",
+		},
+		{
+			name:         "Missing Authorization header",
+			authHeader:   "",
+			expectedCode: http.StatusUnauthorized,
+			expectedBody: "Unauthorized\n",
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("OK"))
+			})
+			token := "Axf2FVAusahoXmKMLZih7LrhBwmYLVmyLDiMoYizPGReJTKEaseAb12oGYvbLleS"
+			middleware := AuthMiddleware(token, handler)
+			req, err := http.NewRequest("GET", "/lists", nil)
+			if err != nil {
+				t.Fatalf("Could not create request:%v", err)
+			}
+			if tt.authHeader != "" {
+				req.Header.Set("Authorization", tt.authHeader)
+			}
+			rr := httptest.NewRecorder()
+			middleware.ServeHTTP(rr, req)
+			if status := rr.Code; status != tt.expectedCode {
+				t.Errorf("Expected status code %d, got %d", tt.expectedCode, status)
+			}
+			if body := rr.Body.String(); body != tt.expectedBody {
+				t.Errorf("Expected body '%s', got '%s'", tt.expectedBody, body)
+			}
 		})
-		token:="Axf2FVAusahoXmKMLZih7LrhBwmYLVmyLDiMoYizPGReJTKEaseAb12oGYvbLleS"
-		middleware:=AuthMiddleware(token, handler)
-		req, err:=http.NewRequest("GET","/lists", nil)
-		if err!=nil{
-			t.Fatalf("Could not create request:%v",err)
-		}
-		req.Header.Set("Authorization", "Bearer "+token)
-		rr:=httptest.NewRecorder()
-		middleware.ServeHTTP(rr, req)
-		if status:=rr.Code; status!=http.StatusOK{
-			t.Errorf("Expected status code %d, got %d",http.StatusOK, status)
-		}
-		if body:=rr.Body.String(); body!="OK"{
-			t.Errorf("Expected body 'OK', got '%s'", body)
-		}
-	})
-	t.Run("Invalid token", func(t *testing.T){
-		handler:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
-		})
-		token:="Axf2FVAusahoXmKMLZih7LrhBwmYLVmyLDiMoYizPGReJTKEaseAb12oGYvbLleS"
-		middleware:=AuthMiddleware(token, handler)
-		req, err:=http.NewRequest("GET","/lists", nil)
-		if err!=nil{
-			t.Fatalf("Could not create request:%v",err)
-		}
-		req.Header.Set("Authorization", "Bearer invalid token")
-		rr:=httptest.NewRecorder()
-		middleware.ServeHTTP(rr, req)
-		if status:=rr.Code; status!=http.StatusForbidden{
-			t.Errorf("Expected status code %d, got %d",http.StatusForbidden, status)
-		}
-		if body:=rr.Body.String(); body!="Forbidden\n"{
-			t.Errorf("Expected body 'OK', got '%s'", body)
-		}
-	})
-	t.Run("Missing Authorization header", func(t *testing.T) {
-		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		    w.WriteHeader(http.StatusOK)
-		    w.Write([]byte("OK"))
-		})
-		token := "Axf2FVAusahoXmKMLZih7LrhBwmYLVmyLDiMoYizPGReJTKEaseAb12oGYvbLleS"
-		middleware := AuthMiddleware(token, handler)
-		req, err := http.NewRequest("GET", "/lists", nil)
-		if err != nil {
-		    t.Fatalf("Could not create request: %v", err)
-		}
-		
-		rr := httptest.NewRecorder()
-		middleware.ServeHTTP(rr, req)
-		if status := rr.Code; status != http.StatusUnauthorized {
-		    t.Errorf("Expected status code %d, got %d", http.StatusUnauthorized, status)
-		}
-		if body := rr.Body.String(); body != "Unauthorized\n" {
-		    t.Errorf("Expected body 'Unauthorized', got '%s'", body)
-		}
-    	})
+	}
+
 }
-	
