@@ -8,7 +8,7 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	testsCases := []struct {
+	testCases := []struct {
 		name        string
 		fileContent string
 		expected    *config.Config
@@ -56,7 +56,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testsCases {
+	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			var file *os.File
 			var err error
@@ -94,7 +94,7 @@ func TestLoadConfig(t *testing.T) {
 	}
 }
 func TestLoadTestConfig(t *testing.T) {
-	testsCases := []struct {
+	testCases := []struct {
 		name        string
 		fileContent string
 		expected    *config.ConfigTest
@@ -140,7 +140,7 @@ func TestLoadTestConfig(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testsCases {
+	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			var file *os.File
 			var err error
