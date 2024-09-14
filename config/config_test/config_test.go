@@ -1,150 +1,179 @@
 package config
 
 import (
-    
-    "os"
-    "testing"
-    "contact-list-api-1/config"
+	"contact-list-api-1/config"
+	"os"
+	"reflect"
+	"testing"
 )
 
-func TestLoadConfig_ValidFile(t *testing.T) {
-
-    	testConfig := `{
-		"db": {
-		    "user": "admin",
-		    "password": "secret",
-		    "host": "localhost",
-		    "name": "test_db"
+func TestLoadConfig(t *testing.T) {
+	testsCases := []struct {
+		name        string
+		fileContent string
+		expected    *config.Config
+		expectedErr bool
+	}{
+		{
+			name: "Valid Config",
+			fileContent: `{
+				"db": {
+					"user": "admin",
+					"password": "secret",
+					"host": "localhost",
+					"name": "test_db"
+				},
+				"auth_token": "my-secret-token"
+			}`,
+			expected: &config.Config{
+				DB: config.DBConfig{
+					User:     "admin",
+					Password: "secret",
+					Host:     "localhost",
+					Name:     "test_db",
+				},
+				AuthToken: "my-secret-token",
+			},
+			expectedErr: false,
 		},
-		"auth_token": "my-secret-token"
-	    }`
-    	file, err := os.Create("test_config.json")
-    	if err != nil {
-        	t.Fatalf("Failed to create test config file: %v", err)
-    	}
-    	defer os.Remove(file.Name())
-    	_,err=file.WriteString(testConfig)
-	if err != nil {
-		t.Fatalf("Failed to write JSON to test config file: %v", err)
+		{
+			name: "Invalid JSON",
+			fileContent: `{
+				"db": {
+					"user": "admin",
+					"password": "secret",
+					"host": "localhost",
+					"name": 1234
+				}}`,
+			expected:    nil,
+			expectedErr: true,
+		},
+		{
+			name:        "Missing File",
+			fileContent: "",
+			expected:    nil,
+			expectedErr: true,
+		},
 	}
-    	file.Close()
 
-    
-    	config, err := config.LoadConfig(file.Name())
-    	if err != nil {
-        	t.Fatalf("Failed to load config: %v", err)
-    	}
+	for _, tt := range testsCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var file *os.File
+			var err error
+			if tt.fileContent != "" {
 
-    	if config.DB.User != "admin" {
-        	t.Errorf("Expected DB user 'admin', got %s", config.DB.User)
-    	}
-    	if config.DB.Password != "secret" {
-        	t.Errorf("Expected DB password 'secret', got %s", config.DB.Password)
-    	}
-    	if config.DB.Host != "localhost" {
-        	t.Errorf("Expected DB host 'localhost', got %s", config.DB.Host)
-    	}
-    	if config.DB.Name != "test_db" {
-        	t.Errorf("Expected DB name 'test_db', got %s", config.DB.Name)
-    	}
-    	if config.AuthToken != "my-secret-token" {
-        	t.Errorf("Expected auth token 'my-secret-token', got %s", config.AuthToken)
-    	}
-}
+				file, err = os.CreateTemp("", "test_config*.json")
+				if err != nil {
+					t.Fatalf("Failed to create temp file: %v", err)
+				}
+				defer os.Remove(file.Name())
 
-func TestLoadConfig_InvalidFile(t *testing.T) {
-    
-    	invalidConfig := `{"db": {"user": "admin", "password": "secret", "host": "localhost", "name": 1234}}`
-    	file, err := os.Create("invalid_config.json")
-    	if err != nil {
-        	t.Fatalf("Failed to create invalid config file: %v", err)
-    	}
-    	defer os.Remove(file.Name())
-    	_, err=file.WriteString(invalidConfig)
-	if err != nil {
-		t.Fatalf("Failed to write invalid JSON to invalid config file: %v", err)
-	}
-    	file.Close()
+				_, err = file.WriteString(tt.fileContent)
+				if err != nil {
+					t.Fatalf("Failed to write config data: %v", err)
+				}
+				file.Close()
+			}
 
-    	_, err = config.LoadConfig(file.Name())
-    	if err == nil {
-        	t.Fatal("Expected error when loading from invalid config file, got nil")
-    	}
-}
+			var cfg *config.Config
+			if tt.fileContent != "" {
+				cfg, err = config.LoadConfig(file.Name())
+			} else {
 
-func TestLoadConfig_NoFile(t *testing.T) {
-    
-    	_, err := config.LoadConfig("no_file.json")
-    	if err == nil {
-        	t.Fatal("Expected error when loading from non-existent config file, got nil")
-    	}
-}
+				cfg, err = config.LoadConfig("nonexistent_file.json")
+			}
 
-func TestLoadTestConfig_ValidFile(t *testing.T) {
-    
-	testConfig := `{
-		"db": {
-		    "user": "test_user",
-		    "password": "test_password",
-		    "host": "test_host",
-		    "name": "test_db"
-		}
-	}`
-	file, err := os.Create("test_config1.json")
-	if err != nil {
-		t.Fatalf("Failed to create test config file: %v", err)
-	}
-	defer os.Remove(file.Name())
-	_, err=file.WriteString(testConfig)
-	if err != nil {
-		t.Fatalf("Failed to write JSON to test config file: %v", err)
-	}
-	file.Close()
+			if (err != nil) != tt.expectedErr {
+				t.Fatalf("Expected error: %v, got: %v", tt.expectedErr, err)
+			}
 
-	    
-	config := config.LoadTestConfig(file.Name())
-	if config.DB.User != "test_user" {
-		t.Errorf("Expected DB user 'test_user', got %s", config.DB.User)
-	}
-	if config.DB.Password != "test_password" {
-		t.Errorf("Expected DB password 'test_password', got %s", config.DB.Password)
-	}
-	if config.DB.Host != "test_host" {
-		t.Errorf("Expected DB host 'test_host', got %s", config.DB.Host)
-	}
-	if config.DB.Name != "test_db" {
-		t.Errorf("Expected DB name 'test_db', got %s", config.DB.Name)
+			if !reflect.DeepEqual(cfg, tt.expected) {
+				t.Errorf("Expected %+v, got %+v", tt.expected, cfg)
+			}
+		})
 	}
 }
-
-
-
-func TestLoadTestConfig_InvalidJSON(t *testing.T) {
-
-	invalidJSON := `{
-		"db": {
-			"user": "testuser",
-			"password": "testpass",
-			"host": "",
-			"name": "testname"
-		}
-	}`
-
-	tmpFile, err := os.Create("invalid_config.json")
-	if err != nil {
-		t.Fatalf("Failed to create temporary config file: %v", err)
+func TestLoadTestConfig(t *testing.T) {
+	testsCases := []struct {
+		name        string
+		fileContent string
+		expected    *config.ConfigTest
+		expectedErr bool
+	}{
+		{
+			name: "Valid Config Test",
+			fileContent: `{
+				"db": {
+					"user": "test user",
+					"password": "test password",
+					"host": "localhost",
+					"name": "test_db"
+				}
+			}`,
+			expected: &config.ConfigTest{
+				DB: config.DBConfig{
+					User:     "test user",
+					Password: "test password",
+					Host:     "localhost",
+					Name:     "test_db",
+				},
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Invalid JSON",
+			fileContent: `{
+				"db": {
+					"user": "test user",
+					"password": "test password",
+					"host": "localhost",
+					"name": 1234
+				}}`,
+			expected:    nil,
+			expectedErr: true,
+		},
+		{
+			name:        "Missing File",
+			fileContent: "",
+			expected:    nil,
+			expectedErr: true,
+		},
 	}
-	defer os.Remove("invalid_config.json") 
 
-	_, err = tmpFile.WriteString(invalidJSON)
-	if err != nil {
-		t.Fatalf("Failed to write invalid JSON to temporary config file: %v", err)
-	}
-	tmpFile.Close()
+	for _, tt := range testsCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var file *os.File
+			var err error
+			if tt.fileContent != "" {
 
-	config := config.LoadTestConfig("invalid_config.json")
-	
-	if config.DB.Host!=""{
-		t.Errorf("Expected empty hostname, got %v", config.DB.Host)
+				file, err = os.CreateTemp("", "test_config*.json")
+				if err != nil {
+					t.Fatalf("Failed to create temp file: %v", err)
+				}
+				defer os.Remove(file.Name())
+
+				_, err = file.WriteString(tt.fileContent)
+				if err != nil {
+					t.Fatalf("Failed to write config data: %v", err)
+				}
+				file.Close()
+			}
+
+			var cfg *config.ConfigTest
+			if tt.fileContent != "" {
+				cfg, err = config.LoadTestConfig(file.Name())
+			} else {
+
+				cfg, err = config.LoadTestConfig("nonexistent_file.json")
+			}
+
+			if (err != nil) != tt.expectedErr {
+				t.Fatalf("Expected error: %v, got: %v", tt.expectedErr, err)
+			}
+
+			if !reflect.DeepEqual(cfg, tt.expected) {
+				t.Errorf("Expected %+v, got %+v", tt.expected, cfg)
+			}
+		})
 	}
 }
