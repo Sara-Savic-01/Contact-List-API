@@ -250,7 +250,7 @@ func TestUpdateList(t *testing.T) {
 	handler := handlers.NewListHandler(service)
 
 	testList := models.List{
-		//UUID: uuid.New(),
+		UUID: uuid.New(),
 		Name: "Old Test List",
 	}
 
