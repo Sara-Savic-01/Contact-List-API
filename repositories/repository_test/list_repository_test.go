@@ -89,6 +89,7 @@ func TestListRepository_Create(t *testing.T) {
 
 	repo := repositories.NewListRepository(db)
 	testUUID := uuid.New()
+	testList := models.List{UUID: testUUID, Name: "Test List"}
 	testCases := []struct {
 		name          string
 		list          models.List
@@ -97,13 +98,13 @@ func TestListRepository_Create(t *testing.T) {
 	}{
 		{
 			name:          "CreateValidList",
-			list:          models.List{UUID: testUUID, Name: "Test List"},
+			list:          testList,
 			expectedError: false,
 			expectedName:  "Test List",
 		},
 		{
 			name:          "DuplicateList",
-			list:          models.List{UUID: testUUID, Name: "Test List"},
+			list:          testList,
 			expectedError: true,
 			expectedName:  "Test List",
 		},
@@ -146,19 +147,19 @@ func TestListRepository_GetByUUID(t *testing.T) {
 		name          string
 		uuid          uuid.UUID
 		expectedError bool
-		expectedName  string
+		expectedUUID  uuid.UUID
 	}{
 		{
 			name:          "ExistingUUID",
 			uuid:          testUUID,
 			expectedError: false,
-			expectedName:  "Test List",
+			expectedUUID:  testUUID,
 		},
 		{
 			name:          "NonExistentUUID",
 			uuid:          uuid.New(),
 			expectedError: true,
-			expectedName:  "",
+			expectedUUID:  testUUID,
 		},
 	}
 	for _, tt := range testCases {
@@ -168,8 +169,8 @@ func TestListRepository_GetByUUID(t *testing.T) {
 				t.Fatalf("Expected error:%v, got %v", tt.expectedError, err)
 
 			}
-			if !tt.expectedError && list.Name != tt.expectedName {
-				t.Errorf("Expected list name to be '%s', got %s", tt.expectedName, list.Name)
+			if !tt.expectedError && (list == nil || list.UUID != tt.expectedUUID) {
+				t.Errorf("Expected list with UUID %v, got %v", tt.expectedUUID, list.UUID)
 			}
 		})
 	}

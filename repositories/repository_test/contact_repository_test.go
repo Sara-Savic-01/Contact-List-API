@@ -306,30 +306,30 @@ func TestContactRepository_Delete(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		UUID        uuid.UUID
+		uuid        uuid.UUID
 		expectError bool
 	}{
 		{
 			name:        "DeleteExistingContact",
-			UUID:        testUUID,
+			uuid:        testUUID,
 			expectError: false,
 		},
 		{
 			name:        "DeleteNonExistentContact",
-			UUID:        uuid.New(),
+			uuid:        uuid.New(),
 			expectError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := repo.Delete(tt.UUID)
+			err := repo.Delete(tt.uuid)
 			if (err != nil) != tt.expectError {
 				t.Fatalf("Expected error: %v, got %v", tt.expectError, err)
 			}
 			if !tt.expectError {
 				var deletedContact models.Contact
-				result := db.Where("uuid = ?", tt.UUID).First(&deletedContact)
+				result := db.Where("uuid = ?", tt.uuid).First(&deletedContact)
 				if result.Error == nil {
 					t.Errorf("Expected record to be deleted, but it still exists")
 				}
