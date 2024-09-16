@@ -1,20 +1,22 @@
 package services
+
 import (
-	"testing"
-	"contact-list-api-1/services"
 	"contact-list-api-1/models"
 	"contact-list-api-1/repositories"
-	"github.com/google/uuid"
+	"contact-list-api-1/services"
 	"contact-list-api-1/tests"
+	"testing"
+
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-func setTestDB(t *testing.T) (*gorm.DB, func()){
-    db:=tests.SetupTestDB(t)
-    cleanup:=func(){
-	tests.TearDownTestDB(t, db)
-    }
-    return db, cleanup
+func setTestDB(t *testing.T) (*gorm.DB, func()) {
+	db := tests.SetupTestDB(t)
+	cleanup := func() {
+		tests.TearDownTestDB(t, db)
+	}
+	return db, cleanup
 }
 func TestListService_GetAllLists(t *testing.T) {
 	db, cleanup := setTestDB(t)
@@ -24,62 +26,71 @@ func TestListService_GetAllLists(t *testing.T) {
 	service := services.NewListService(repo)
 
 	lists := []models.List{
-			{UUID: uuid.New(), Name: "Family"},
-			{UUID: uuid.New(), Name: "Friends"},
-			{UUID: uuid.New(), Name: "Work"},
+		{UUID: uuid.New(), Name: "Family"},
+		{UUID: uuid.New(), Name: "Friends"},
+		{UUID: uuid.New(), Name: "Work"},
 	}
 	for i, list := range lists {
 		if err := db.Create(&list).Error; err != nil {
-			    t.Fatalf("Could not create test list: %v", err)
+			t.Fatalf("Could not create test list: %v", err)
 		}
 		lists[i] = list
 	}
+	testCases := []struct {
+		name          string
+		filter        string
+		page          int
+		pageSize      int
+		expectedCount int
+		expectedName  string
+	}{
+		{
+			name:          "WithoutFilterAndWithDefaultPagination",
+			filter:        "",
+			page:          1,
+			pageSize:      10,
+			expectedCount: len(lists),
+		},
+		{
+			name:          "WithFilter",
+			filter:        "Family",
+			page:          1,
+			pageSize:      10,
+			expectedCount: 1,
+			expectedName:  "Family",
+		},
+		{
+			name:          "WithPagination",
+			filter:        "",
+			page:          2,
+			pageSize:      1,
+			expectedCount: 1,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			results, err := service.GetAllLists(tt.filter, tt.page, tt.pageSize)
+			if err != nil {
+				t.Fatalf("Excpected no error. got %v", err)
+			}
+			if len(results) != tt.expectedCount {
+				t.Errorf("Expected %d lists, got %d", tt.expectedCount, len(results))
+			}
+			if tt.expectedName != "" && len(results) > 0 && results[0].Name != tt.expectedName {
+				t.Errorf("Expected list with name '%s', got '%s'", tt.expectedName, results[0].Name)
+			}
+		})
 
-	t.Run("WithoutFilterAndWithDefaultPagination", func(t *testing.T) {
-		results, err := service.GetAllLists("", 1, 10) 
-		if err != nil {
-		    t.Fatalf("Expected no error, got %v", err)
-		}
-		if len(results) != len(lists) {
-		    t.Errorf("Expected %d lists, got %d", len(lists), len(results))
-		}
-	    })
-
-	t.Run("WithFilter", func(t *testing.T) {
-		results, err := service.GetAllLists("Family", 1, 10)
-		if err != nil {
-		    t.Fatalf("Expected no error, got %v", err)
-		}
-		if len(results) != 1 {
-		    t.Errorf("Expected 1 list with name 'Family', got %d", len(results))
-		}
-		if results[0].Name != "Family" {
-		    t.Errorf("Expected list with name 'Family', got %s", results[0].Name)
-		}
-	})
-
-	t.Run("WithPagination", func(t *testing.T) {
-		results, err := service.GetAllLists("", 2, 1) 
-		if err != nil {
-		    t.Fatalf("Expected no error, got %v", err)
-		}
-		if len(results) != 1 {
-		    t.Errorf("Expected 1 list on page 2 with page size 1, got %d", len(results))
-		}
-		
-	})
-	
-	
+	}
 
 }
 
 func TestListService_GetListByUUID(t *testing.T) {
-        db, cleanup := setTestDB(t)
-        defer cleanup()
+	db, cleanup := setTestDB(t)
+	defer cleanup()
 
-        repo := repositories.NewListRepository(db)
-        service := services.NewListService(repo)
-
+	repo := repositories.NewListRepository(db)
+	service := services.NewListService(repo)
 
 	testUUID := uuid.New()
 	list := models.List{
@@ -88,160 +99,221 @@ func TestListService_GetListByUUID(t *testing.T) {
 	}
 	db.Create(&list)
 
-	result, err := service.GetListByUUID(testUUID)
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
+	testCases := []struct {
+		name          string
+		uuid          uuid.UUID
+		expectedError bool
+	}{
+		{
+			name:          "ExistingUUID",
+			uuid:          testUUID,
+			expectedError: false,
+		},
+		{
+			name:          "NonExistentUUID",
+			uuid:          uuid.New(),
+			expectedError: true,
+		},
 	}
-	if result.UUID != testUUID {
-		t.Errorf("Expected UUID %v, got %v", testUUID, result.UUID)
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := service.GetListByUUID(tt.uuid)
+			if (err != nil) != tt.expectedError {
+				t.Fatalf("Expected error:%v, got %v", tt.expectedError, err)
+			}
+			if !tt.expectedError {
+				if result.UUID != tt.uuid {
+					t.Errorf("Expected UUID %v, got %v", tt.uuid, result.UUID)
+				}
+			} else {
+				if result != nil {
+					t.Errorf("Expected no list, got %v", result)
+				}
+			}
+		})
 	}
-	
-	t.Run("NonExistentUUID", func(t *testing.T) {
-		nonExistentUUID := uuid.New()
-		result, err := service.GetListByUUID(nonExistentUUID)
-		if err == nil {
-		    t.Fatalf("Expected an error, got %v", err)
-		}
-		if result != nil {
-		    t.Errorf("Expected no list, got %v", result)
-		}
-    })
-
 }
 
 func TestListService_CreateList(t *testing.T) {
-        db, cleanup := setTestDB(t)
-        defer cleanup()
+	db, cleanup := setTestDB(t)
+	defer cleanup()
 
-        repo := repositories.NewListRepository(db)
-        service := services.NewListService(repo)
-	
+	repo := repositories.NewListRepository(db)
+	service := services.NewListService(repo)
 
-    	newList := models.List{
-        	UUID: uuid.New(),
-        	Name: "New List",
-    	}
+	newList := models.List{
+		UUID: uuid.New(),
+		Name: "New List",
+	}
+	testCases := []struct {
+		name          string
+		list          models.List
+		expectedError bool
+	}{
+		{
+			name:          "ValidList",
+			list:          newList,
+			expectedError: false,
+		},
+		{
+			name: "EmptyName",
+			list: models.List{
+				UUID: uuid.New(),
+				Name: "",
+			},
+			expectedError: true,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			err := service.CreateList(tt.list)
 
-    	err := service.CreateList(newList)
-    	if err != nil {
-        	t.Fatalf("Expected no error, got %v", err)
-    	}
+			if tt.expectedError {
+				if err == nil {
+					t.Fatal("Expected error , got nil")
+				}
 
-    	var list models.List
-    	db.Where("uuid = ?", newList.UUID).First(&list)
-    	if list.Name != newList.Name {
-        	t.Errorf("Expected name %v, got %v", newList.Name, list.Name)
-    	}
-	t.Run("EmptyName", func(t *testing.T) {
-    		newList := models.List{
-        		UUID: uuid.New(),
-        		Name: "", 
-    		}
+			} else {
+				if err != nil {
+					t.Fatalf("Expected no error, got %v", err)
+				}
 
-    		err := service.CreateList(newList)
-    		if err == nil {
-        		t.Fatalf("Expected an error for invalid name, got nil")
-    		}
-	})
-	
+				var createdList models.List
+				db.Where("uuid = ?", tt.list.UUID).First(&createdList)
+
+				if createdList.Name != tt.list.Name {
+					t.Errorf("Expected name %v, got %v", tt.list.Name, createdList.Name)
+				}
+
+				if tt.list.UUID == uuid.Nil && createdList.UUID == uuid.Nil {
+					t.Errorf("Expected a new UUID to be generated, got nil UUID")
+				}
+			}
+		})
+	}
 
 }
 
 func TestListService_UpdateList(t *testing.T) {
-    	db, cleanup := setTestDB(t)
-    	defer cleanup()
+	db, cleanup := setTestDB(t)
+	defer cleanup()
 
-    	repo := repositories.NewListRepository(db)
-   	service := services.NewListService(repo)
-	
-	
-   	existingUUID := uuid.New()
-    	list := models.List{
-        	UUID: existingUUID,
-        	Name: "Original Name",
-    	}
-    	db.Create(&list)
+	repo := repositories.NewListRepository(db)
+	service := services.NewListService(repo)
 
-    	list.Name = "Updated Name"
-    	err := service.UpdateList(list)
-    	if err != nil {
-        	t.Fatalf("Expected no error, got %v", err)
-    	}
+	existingUUID := uuid.New()
+	list := models.List{
+		UUID: existingUUID,
+		Name: "Original Name",
+	}
+	db.Create(&list)
+	testCases := []struct {
+		name          string
+		updateList    models.List
+		expectedError bool
+	}{
+		{
+			name: "SuccessfulUpdate",
 
-    	var updatedList models.List
-    	db.Where("uuid = ?", existingUUID).First(&updatedList)
-    	if updatedList.Name != list.Name {
-        	t.Errorf("Expected name %v, got %v", list.Name, updatedList.Name)
-    	}
-	t.Run("NonExistentUUID", func(t *testing.T) {
-    		invalidUUID := uuid.New()
-    		list := models.List{
-        		UUID: invalidUUID,
-        		Name: "Update Attempt",
-    		}
+			updateList: models.List{
+				UUID: existingUUID,
+				Name: "Updated Name",
+			},
+			expectedError: false,
+		},
+		{
+			name: "NonExistentUUID",
 
-    		err := service.UpdateList(list)
-    		if err == nil {
-        		t.Fatalf("Expected an error for invalid UUID, got nil")
-    		}
-	})
-	
+			updateList: models.List{
+				UUID: uuid.New(),
+				Name: "Update Attempt",
+			},
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+
+			err := service.UpdateList(tt.updateList)
+
+			if tt.expectedError {
+				if err == nil {
+					t.Fatalf("Expected error, got nil")
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("Expected no error, got %v", err)
+				}
+
+				var updatedList models.List
+				db.Where("uuid = ?", tt.updateList.UUID).First(&updatedList)
+
+				if updatedList.Name != tt.updateList.Name {
+					t.Errorf("Expected name %v, got %v", tt.updateList.Name, updatedList.Name)
+				}
+			}
+		})
+	}
+
 }
 
 func TestListService_DeleteList(t *testing.T) {
-    	db, cleanup := setTestDB(t)
-    	defer cleanup()
+	db, cleanup := setTestDB(t)
+	defer cleanup()
 
-    	repo := repositories.NewListRepository(db)
-    	service := services.NewListService(repo)
-	
+	repo := repositories.NewListRepository(db)
+	service := services.NewListService(repo)
 
-    	testUUID := uuid.New()
-    	list := models.List{
-        	UUID: testUUID,
-        	Name: "To be deleted",
-    	}
-    	db.Create(&list)
+	testLists := []models.List{
+		{UUID: uuid.New(), Name: "To be deleted"},
+		{UUID: uuid.New(), Name: "Existing List"},
+	}
 
-    	err := service.DeleteList(testUUID)
-    	if err != nil {
-        	t.Fatalf("Expected no error, got %v", err)
-    	}
-
-    	var deletedList models.List
-    	if result := db.Where("uuid = ?", testUUID).First(&deletedList); result.Error == nil {
-        	t.Errorf("Expected record to be deleted, but it still exists")
-    	}
-	
-	t.Run("DeleteAlreadyDeleted", func(t *testing.T) {
-		    validUUID := uuid.New()
-		    list := models.List{
-			UUID: validUUID,
-			Name: "To be deleted",
-		    }
-		    db.Create(&list)
-		    db.Delete(&list) 
-
-		    err := service.DeleteList(validUUID)
-		    if err == nil {
-			t.Fatalf("Expected error when deleting already deleted list, got %v", err)
-		    }
-
-		    var deletedList models.List
-		    if result := db.Where("uuid = ?", validUUID).First(&deletedList); result.Error == nil {
-			t.Errorf("Expected record to be deleted, but it still exists")
-		    }
-	})
-	t.Run("NonExistentList", func(t *testing.T) {
-		nonExistentUUID := uuid.New()
-		err := service.DeleteList(nonExistentUUID)
-		if err == nil {
-		    t.Fatalf("Expected an error, got %v", err)
+	for _, list := range testLists {
+		if err := db.Create(&list).Error; err != nil {
+			t.Fatalf("Could not create test list: %v", err)
 		}
-		
-		var list models.List
-		if result := db.Where("uuid = ?", nonExistentUUID).First(&list); result.Error == nil {
-		    t.Errorf("Expected list to not exist, but it was found")
-		}
-    })
+	}
+	db.Delete(&testLists[0])
+	testCases := []struct {
+		name        string
+		listUUID    uuid.UUID
+		expectError bool
+		shouldExist bool
+	}{
+		{
+			name:        "DeleteExistingList",
+			listUUID:    testLists[1].UUID,
+			expectError: false,
+			shouldExist: false,
+		},
+		{
+			name:        "DeleteAlreadyDeletedList",
+			listUUID:    testLists[0].UUID,
+			expectError: true,
+			shouldExist: false,
+		},
+		{
+			name:        "DeleteNonExistentList",
+			listUUID:    uuid.New(),
+			expectError: true,
+			shouldExist: false,
+		},
+	}
+	service.DeleteList(testLists[0].UUID)
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			err := service.DeleteList(tt.listUUID)
+			if (err != nil) != tt.expectError {
+				t.Fatalf("Expected error: %v, got %v", tt.expectError, err)
+			}
+
+			var deletedList models.List
+			result := db.Where("uuid = ?", tt.listUUID).First(&deletedList)
+			if (result.Error == nil) != tt.shouldExist {
+				t.Errorf("Expected list existence: %v, but found %v", tt.shouldExist, result.Error == nil)
+			}
+		})
+	}
 }
