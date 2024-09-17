@@ -336,6 +336,7 @@ func TestContactService_CreateContact(t *testing.T) {
 				if contact.UUID == uuid.Nil {
 					t.Errorf("Expected UUID to be generated, got nil")
 				}
+
 				if contact.Email != tt.contact.Email {
 					t.Errorf("Expected email %v, got %v", tt.contact.Email, contact.Email)
 				}
