@@ -380,6 +380,12 @@ func TestUpdateContact(t *testing.T) {
 			body:               updatedContact,
 			expectedStatusCode: http.StatusBadRequest,
 		},
+		{
+			name:               "MissingUUID",
+			uuid:               "",
+			body:               updatedContact,
+			expectedStatusCode: http.StatusBadRequest,
+		},
 	}
 
 	for _, tt := range testCases {
@@ -447,6 +453,11 @@ func TestDeleteContact(t *testing.T) {
 		{
 			name:               "InvalidUUIDFormat",
 			uuid:               "invalid-uuid",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name:               "MissingUUID",
+			uuid:               "",
 			expectedStatusCode: http.StatusBadRequest,
 		},
 	}

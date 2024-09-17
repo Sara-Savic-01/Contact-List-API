@@ -193,7 +193,7 @@ func TestContactRepository_GetByUUID(t *testing.T) {
 			expectedUUID:  testUUID,
 		},
 		{
-			name:          "NonExistentUUID",
+			name:          "NonExistentContact",
 			uuid:          uuid.New(),
 			expectedError: true,
 		},
@@ -305,29 +305,29 @@ func TestContactRepository_Delete(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		uuid        uuid.UUID
-		expectError bool
+		name          string
+		uuid          uuid.UUID
+		expectedError bool
 	}{
 		{
-			name:        "DeleteExistingContact",
-			uuid:        testUUID,
-			expectError: false,
+			name:          "DeleteExistingContact",
+			uuid:          testUUID,
+			expectedError: false,
 		},
 		{
-			name:        "DeleteNonExistentContact",
-			uuid:        uuid.New(),
-			expectError: true,
+			name:          "DeleteNonExistentUUID",
+			uuid:          uuid.New(),
+			expectedError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := repo.Delete(tt.uuid)
-			if (err != nil) != tt.expectError {
-				t.Fatalf("Expected error: %v, got %v", tt.expectError, err)
+			if (err != nil) != tt.expectedError {
+				t.Fatalf("Expected error: %v, got %v", tt.expectedError, err)
 			}
-			if !tt.expectError {
+			if !tt.expectedError {
 				var deletedContact models.Contact
 				result := db.Where("uuid = ?", tt.uuid).First(&deletedContact)
 				if result.Error == nil {

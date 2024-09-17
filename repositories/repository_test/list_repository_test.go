@@ -150,13 +150,13 @@ func TestListRepository_GetByUUID(t *testing.T) {
 		expectedUUID  uuid.UUID
 	}{
 		{
-			name:          "ExistingUUID",
+			name:          "GetExistingUUID",
 			uuid:          testUUID,
 			expectedError: false,
 			expectedUUID:  testUUID,
 		},
 		{
-			name:          "NonExistentUUID",
+			name:          "GetNonExistentUUID",
 			uuid:          uuid.New(),
 			expectedError: true,
 			expectedUUID:  testUUID,
